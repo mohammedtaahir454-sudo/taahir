@@ -1,0 +1,435 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KTM Ultimate 360 Showroom</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:#101010;
+  color:white;
+  font-family:Arial,sans-serif;
+}
+
+header{
+  background:#ff6600;
+  padding:30px 15px;
+  text-align:center;
+}
+
+header h1{font-size:35px}
+header p{margin-top:10px}
+
+nav{
+  background:#222;
+  padding:15px;
+  text-align:center;
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+
+button{
+  background:#ff6600;
+  color:white;
+  border:0;
+  padding:11px 16px;
+  margin:5px;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+button:hover{background:white;color:black}
+
+.container{padding:20px}
+
+h2{
+  color:#ff6600;
+  margin:25px 0 15px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:7px;
+  border:0;
+  margin:15px 0;
+  font-size:16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:
+  repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+}
+
+.card{
+  background:#242424;
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  border:1px solid #444;
+}
+
+.card img{
+  width:100%;
+  height:160px;
+  object-fit:contain;
+  background:white;
+  border-radius:8px;
+}
+
+.card h3{margin:12px 0}
+
+.card p{
+  margin:7px;
+  color:#ddd;
+}
+
+.viewer{
+  background:#242424;
+  max-width:750px;
+  margin:20px auto;
+  padding:20px;
+  text-align:center;
+  border-radius:12px;
+}
+
+#bikeImage{
+  width:100%;
+  height:350px;
+  object-fit:contain;
+  background:white;
+  border-radius:10px;
+  touch-action:pan-y;
+  cursor:grab;
+  user-select:none;
+}
+
+#bikeImage:active{cursor:grabbing}
+
+.torque{
+  color:#ff6600;
+  font-weight:bold;
+}
+
+footer{
+  background:#ff6600;
+  padding:25px;
+  text-align:center;
+  margin-top:30px;
+}
+
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>KTM 360° SHOWROOM</h1>
+  <p>Explore the World of KTM Motorcycles</p>
+  <p>DUKE | RC | ADVENTURE | ENDURO | MOTOCROSS</p>
+</header>
+
+<nav>
+  <button onclick="filterBikes('all')">ALL BIKES</button>
+  <button onclick="filterBikes('low')">BELOW 20 Nm</button>
+  <button onclick="filterBikes('medium')">20–39 Nm</button>
+  <button onclick="filterBikes('high')">40–79 Nm</button>
+  <button onclick="filterBikes('veryhigh')">80+ Nm</button>
+  <button onclick="filterBikes('unknown')">OTHER / UNLISTED</button>
+</nav>
+
+<div class="container">
+
+<h2>360° Motorcycle Viewer</h2>
+
+<div class="viewer">
+  <h2 id="selectedName">Select a KTM Bike</h2>
+
+  <img id="bikeImage"
+       src=""
+       alt="KTM motorcycle 360 view">
+
+  <p>Drag left or right to rotate the motorcycle.</p>
+
+  <p id="selectedTorque" class="torque"></p>
+
+  <p id="frameNumber">Select a motorcycle below</p>
+</div>
+
+<h2>Find Your KTM Bike</h2>
+
+<input type="text" id="search"
+placeholder="Search KTM bike name..."
+oninput="searchBikes()">
+
+<div id="bikeSections"></div>
+
+</div>
+
+<footer>
+  <h2>KTM READY TO RACE</h2>
+  <p>Ultimate KTM Motorcycle Collection</p>
+  <p>Created with HTML, CSS and JavaScript</p>
+</footer>
+
+<script>
+
+// KTM MOTORCYCLE DATABASE
+// Torque values are in Nm.
+// null means specification needs verification.
+
+const bikes = [
+
+ // DUKE SERIES
+
+ {name:"KTM 160 Duke",cc:164.2,torque:15.5,type:"Duke",folder:"160-duke"},
+ {name:"KTM 200 Duke",cc:199.5,torque:19.3,type:"Duke",folder:"200-duke"},
+ {name:"KTM 250 Duke",cc:249.07,torque:25,type:"Duke",folder:"250-duke"},
+ {name:"KTM 390 Duke",cc:349.32,torque:33.5,type:"Duke",folder:"390-duke"},
+ {name:"KTM 390 Duke R",cc:398.63,torque:39,type:"Duke",folder:"390-duke-r"},
+ {name:"KTM 890 Duke R",cc:889,torque:99,type:"Duke",folder:"890-duke-r"},
+ {name:"KTM 1390 Super Duke R",cc:1350,torque:145,type:"Duke",folder:"1390-super-duke-r"},
+
+ // RC SERIES
+
+ {name:"KTM RC 160",cc:164.2,torque:null,type:"RC",folder:"rc-160"},
+ {name:"KTM RC 200",cc:199.5,torque:null,type:"RC",folder:"rc-200"},
+ {name:"KTM RC 390",cc:373,torque:37,type:"RC",folder:"rc-390"},
+
+ // ADVENTURE SERIES
+
+ {name:"KTM 250 Adventure",cc:249.07,torque:25,type:"Adventure",folder:"250-adventure"},
+ {name:"KTM 390 Adventure",cc:349.32,torque:33.5,type:"Adventure",folder:"390-adventure"},
+ {name:"KTM 390 Adventure X",cc:398.63,torque:39,type:"Adventure",folder:"390-adventure-x"},
+ {name:"KTM 390 Adventure S",cc:398.63,torque:39,type:"Adventure",folder:"390-adventure-s"},
+ {name:"KTM 390 Adventure R",cc:398.7,torque:39,type:"Adventure",folder:"390-adventure-r"},
+ {name:"KTM 890 Adventure R",cc:889,torque:100,type:"Adventure",folder:"890-adventure-r"},
+ {name:"KTM 1290 Super Adventure S",cc:1301,torque:140,type:"Adventure",folder:"1290-adventure-s"},
+
+ // ENDURO
+
+ {name:"KTM 390 Enduro R",cc:398.63,torque:39,type:"Enduro",folder:"390-enduro-r"},
+ {name:"KTM 350 EXC-F Six Days",cc:349.7,torque:null,type:"Enduro",folder:"350-exc-f"},
+
+ // MOTOCROSS
+
+ {name:"KTM 450 SX-F",cc:449.9,torque:null,type:"Motocross",folder:"450-sx-f"},
+ {name:"KTM 250 SX-F",cc:249.9,torque:null,type:"Motocross",folder:"250-sx-f"},
+ {name:"KTM 85 SX",cc:84.9,torque:null,type:"Motocross",folder:"85-sx"},
+ {name:"KTM 65 SX",cc:64.9,torque:null,type:"Motocross",folder:"65-sx"},
+ {name:"KTM 50 SX",cc:49,torque:null,type:"Motocross",folder:"50-sx"}
+
+];
+
+// TORQUE CATEGORIES
+
+function category(bike){
+
+ if(bike.torque === null) return "unknown";
+
+ if(bike.torque < 20) return "low";
+
+ if(bike.torque < 40) return "medium";
+
+ if(bike.torque < 80) return "high";
+
+ return "veryhigh";
+}
+
+const categoryNames = {
+ low:"LOW TORQUE - BELOW 20 Nm",
+ medium:"MEDIUM TORQUE - 20 TO 39 Nm",
+ high:"HIGH TORQUE - 40 TO 79 Nm",
+ veryhigh:"VERY HIGH TORQUE - 80+ Nm",
+ unknown:"TORQUE SPECIFICATION NOT LISTED"
+};
+
+// DISPLAY BIKES
+
+function createCard(bike){
+
+ return `
+ <div class="card">
+
+ <img src="images/${bike.folder}/frame-01.jpg"
+ alt="${bike.name}"
+ onerror="this.style.opacity='0.3'">
+
+ <h3>${bike.name}</h3>
+
+ <p>Engine: ${bike.cc} cc</p>
+
+ <p class="torque">
+ Torque: ${bike.torque === null
+ ? "Not verified"
+ : bike.torque + " Nm"}
+ </p>
+
+ <p>Category: ${bike.type}</p>
+
+ <button onclick="showBike('${bike.folder}',
+ '${bike.name}',${bike.torque})">
+ 360° VIEW
+ </button>
+
+ </div>`;
+}
+
+function displayBikes(list){
+
+ const section = document.getElementById("bikeSections");
+
+ section.innerHTML = "";
+
+ const groups = ["low","medium","high","veryhigh","unknown"];
+
+ groups.forEach(group => {
+
+ const filtered = list.filter(
+ bike => category(bike) === group
+ );
+
+ if(filtered.length === 0) return;
+
+ let html = `
+ <h2>${categoryNames[group]}</h2>
+ <div class="grid">
+ `;
+
+ filtered.forEach(bike => {
+ html += createCard(bike);
+ });
+
+ html += "</div>";
+
+ section.innerHTML += html;
+
+ });
+
+}
+
+// FILTER
+
+function filterBikes(group){
+
+ let result = group === "all"
+ ? bikes
+ : bikes.filter(bike => category(bike) === group);
+
+ displayBikes(result);
+
+}
+
+// SEARCH
+
+function searchBikes(){
+
+ const query = document.getElementById("search")
+ .value.toLowerCase();
+
+ const result = bikes.filter(bike =>
+ bike.name.toLowerCase().includes(query) ||
+ bike.type.toLowerCase().includes(query)
+ );
+
+ displayBikes(result);
+}
+
+// 360 VIEW
+
+let currentFolder = "";
+let frame = 1;
+let dragging = false;
+let previousX = 0;
+
+const bikeImage = document.getElementById("bikeImage");
+
+function showBike(folder,name,torque){
+
+ currentFolder = folder;
+ frame = 1;
+
+ document.getElementById("selectedName").innerText = name;
+
+ document.getElementById("selectedTorque").innerText =
+ torque === null
+ ? "Torque: Not verified"
+ : "Torque: " + torque + " Nm";
+
+ updateFrame();
+
+ document.querySelector(".viewer").scrollIntoView({
+ behavior:"smooth"
+ });
+
+}
+
+function updateFrame(){
+
+ bikeImage.src =
+ `images/${currentFolder}/frame-${String(frame).padStart(2,"0")}.jpg`;
+
+ document.getElementById("frameNumber").innerText =
+ `Frame ${frame} / 36`;
+}
+
+// DRAG TO ROTATE
+
+bikeImage.addEventListener("pointerdown",e=>{
+
+ if(!currentFolder) return;
+
+ dragging = true;
+ previousX = e.clientX;
+
+ bikeImage.setPointerCapture(e.pointerId);
+
+});
+
+bikeImage.addEventListener("pointermove",e=>{
+
+ if(!dragging) return;
+
+ const movement = e.clientX - previousX;
+
+ if(Math.abs(movement) > 5){
+
+ frame += movement > 0 ? 1 : -1;
+
+ if(frame > 36) frame = 1;
+ if(frame < 1) frame = 36;
+
+ updateFrame();
+
+ previousX = e.clientX;
+ }
+
+});
+
+bikeImage.addEventListener("pointerup",()=>{
+ dragging = false;
+});
+
+bikeImage.addEventListener("pointercancel",()=>{
+ dragging = false;
+});
+
+// START WEBSITE
+
+displayBikes(bikes);
+
+</script>
+
+</body>
+</html>
